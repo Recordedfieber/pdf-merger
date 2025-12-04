@@ -14,7 +14,7 @@ else
     PIP_EXEC = $(VENV_DIR)/bin/pip
 endif
 
-.PHONY: help setup-env install-backend install-frontend install run run-backend run-frontend clean
+.PHONY: help setup-env install-backend install-frontend install run run-backend run-frontend clean lint format
 
 # Help Command
 help:
@@ -23,9 +23,11 @@ help:
 	@echo "Frontend: $(FRONTEND_DIR)"
 	@echo "Venv:     $(VENV_DIR)"
 	@echo "-------------------------------"
-	@echo "make setup-env       : Create virtual environment only (does not install deps)"
-	@echo "make install         : Install dependencies (assumes venv exists)"
+	@echo "make setup-env       : Create virtual environment only"
+	@echo "make install         : Install dependencies"
 	@echo "make run             : Run both apps"
+	@echo "make lint            : Check code quality"
+	@echo "make format          : Auto-format code"
 
 # 1. Environment Setup (Only creates the folder)
 setup-env:
@@ -35,7 +37,8 @@ setup-env:
 # 2. Dependency Installation
 install-backend:
 	@echo "--> Installing Python requirements..."
-	$(PIP_EXEC) install fastapi uvicorn pypdf python-multipart
+	# Added flake8 and black for linting support
+	$(PIP_EXEC) install fastapi uvicorn pypdf python-multipart flake8 black
 
 install-frontend:
 	@echo "--> Installing Node modules..."
@@ -58,7 +61,20 @@ run:
 	cd $(BACKEND_DIR) && PYTHONUNBUFFERED=1 ../$(PYTHON_EXEC) -m uvicorn main:app --reload --port $(BACKEND_PORT) & \
 	cd $(FRONTEND_DIR) && npm run dev)
 
-# 4. Cleaning
+# 4. Code Quality (NEW ADDITIONS)
+lint:
+	@echo "--- Linting Backend (Flake8) ---"
+	$(PYTHON_EXEC) -m flake8 $(BACKEND_DIR) --count --select=E9,F63,F7,F82 --show-source --statistics
+	@echo "--- Linting Frontend (ESLint) ---"
+	cd $(FRONTEND_DIR) && npm run lint
+
+format:
+	@echo "--- Formatting Backend (Black) ---"
+	$(PYTHON_EXEC) -m black $(BACKEND_DIR)
+	@echo "--- Formatting Frontend (Prettier) ---"
+	cd $(FRONTEND_DIR) && npm run format
+
+# 5. Cleaning
 clean:
 	rm -rf $(VENV_DIR)
 	rm -rf $(BACKEND_DIR)/__pycache__

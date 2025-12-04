@@ -1,0 +1,2 @@
+# Pre-commit testing
+cd pdf-merger-frontend && npx lint-staged
