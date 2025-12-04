@@ -10,11 +10,12 @@ app = FastAPI()
 # Allow Frontend to communicate with Backend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], 
+    allow_origins=["*"],
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 @app.post("/merge")
 async def merge_pdfs(
@@ -54,14 +55,18 @@ async def merge_pdfs(
             media_type="application/pdf",
             headers={
                 "Content-Disposition": f"attachment; filename={output_filename}",
-                "Content-Length": str(file_size)
-            }
+                "Content-Length": str(file_size),
+            },
         )
 
     except Exception as e:
         print(f"Error: {e}")
-        raise HTTPException(status_code=500, detail="An error occurred while processing PDFs.")
+        raise HTTPException(
+            status_code=500, detail="An error occurred while processing PDFs."
+        )
+
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)
